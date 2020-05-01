@@ -1,3 +1,4 @@
 rndc.conf
 rndc.key
 .DS_Store
+/volumes_nfs/bind_data/bind/etc/rndc.conf
