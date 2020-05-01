@@ -1,0 +1,22 @@
+#!/bin/bash
+# Backup docker volumes to file system
+#set -x
+
+if [ $# -eq 1 ]; then
+	stackname=${1}
+else
+	stackname=$(basename `pwd`)
+fi
+
+# local volumes
+for dir in volumes/*; do
+	if [ -d "$dir" ]; then
+		echo "Saving `basename ${dir}`"
+		docker run \
+			--volume ${stackname}_`basename ${dir}`:/src \
+			--volume `pwd`/${dir}:/dst \
+			--name rsync$$ eeacms/rsync:latest \
+			rsync --archive --delete /src/ /dst >/dev/null
+		docker rm  rsync$$ >/dev/null
+	fi
+done

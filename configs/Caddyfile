@@ -1,0 +1,78 @@
+# Caddyfile for my docker swarm web frontend
+(tls) {
+  tls ryl@free.fr {
+    protocols tls1.2 tls1.3
+    ciphers ECDHE-ECDSA-AES128-GCM-SHA256 ECDHE-RSA-AES128-GCM-SHA256 ECDHE-ECDSA-AES256-GCM-SHA384 ECDHE-RSA-AES256-GCM-SHA384 ECDHE-ECDSA-WITH-CHACHA20-POLY1305 ECDHE-RSA-WITH-CHACHA20-POLY1305
+  }
+  # the following header will redirect http requests to https
+  header / Strict-Transport-Security "max-age=300;"
+}
+
+www.123-group.com {
+#  log / stdout "{combined} {host}"
+#  tls off
+  import tls
+  proxy / 123shop_web:80 {
+    transparent
+  }
+}
+#123-group.com {
+#  log stdout
+#  redir 301 { # Permanent redirect specified for clarity
+##        if {host} starts_with 123-group.com # Only redir if there's no www
+#        / https://www.{host}{uri} # Preserve request URI
+#  }
+#}
+
+# villamilawines.com, 
+www.villamilawines.com, en.villamilawines.com, fr.villamilawines.com, hr.villamilawines.com {
+#  log / stdout "{combined} {host}"
+#  tls off
+  import tls
+  proxy / villamila_web:80 {
+    transparent
+  }
+}
+
+# uciliste-sestine.hr, 
+dev.uciliste-sestine.hr {
+  log / stdout "{combined} {host}"
+#  tls off
+  import tls
+  proxy / edudev_web:8080 {
+    transparent
+    header_upstream X-Forwarded-Proto https
+    insecure_skip_verify
+  }
+}
+www.uciliste-sestine.hr {
+  log / stdout "{combined} {host}"
+#  tls off
+  import tls
+  proxy / uciliste_web:8080 {
+    transparent
+    header_upstream X-Forwarded-Proto https
+    insecure_skip_verify
+  }
+}
+
+portainer.123-group.com, portainer.villamilawines.com, portainer.uciliste-sestine.hr {
+  proxy / portainer_portainer:9000 {
+    websocket
+    transparent
+  }
+  import tls
+}
+
+#http://vps312177.ovh.net {
+#  proxy / sestine_web:8080 {
+#    transparent
+#    header_upstream X-Forwarded-Proto https
+#  }
+#  tls off
+#}
+
+http://0.0.0.0
+browse
+#log / stdout "{combined} {host}"
+cors

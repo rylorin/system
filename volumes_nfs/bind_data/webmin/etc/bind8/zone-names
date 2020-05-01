@@ -1,0 +1,14 @@
+pidfile_config=/var/run/bind/run/named.pid /var/run/named.pid /var/run/named/named.pid /var/run/bind/run/named/named.pid
+zone_3=localhost	4	master	*	/etc/bind/db.local
+file_/etc/bind/named.conf.default-zones=1516110654
+no_chroot_config=0
+zone_6=255.in-addr.arpa	7	master	*	/etc/bind/db.255
+zone_1=uciliste-sestine.hr	2	master	*	/var/lib/bind/uciliste-sestine.hr.hosts.signed
+zone_5=0.in-addr.arpa	6	master	*	/etc/bind/db.0
+zone_2=.	3	hint	*	/etc/bind/db.root
+pidfile=/var/run/named/named.pid
+file_/etc/bind/named.conf.local=1525594569
+version=3
+base=/var/cache/bind
+zone_4=127.in-addr.arpa	5	master	*	/etc/bind/db.127
+zone_0=femmes-lab.com	1	master	*	/var/lib/bind/femmes-lab.com.hosts

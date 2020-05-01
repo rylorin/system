@@ -1,0 +1,4 @@
+#!/bin/sh
+
+cd ./volumes_nfs/bind_data/bind/lib
+../zonesigner.sh uciliste-sestine.hr uciliste-sestine.hr.hosts

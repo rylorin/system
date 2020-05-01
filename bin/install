@@ -1,0 +1,69 @@
+#!/bin/bash
+# Helper script to deploy my docker stacks
+#set -x
+
+if [ $# -eq 0 ]; then
+	echo "usage: $0 manager|worker stack_name"
+	exit 1
+fi
+
+# configs
+if [ $1 = "manager" ]; then
+	for file in configs/*; do
+		if [ -f "$file" ]; then
+			docker config create `basename $file` $file
+		fi
+	done
+fi
+
+# local volumes
+for dir in volumes/*; do
+	if [ -d "$dir" ]; then
+		echo "Creating volume $2_`basename $dir`"
+		docker run \
+			--volume `pwd`/${dir}:/src \
+			--volume $2_`basename ${dir}`:/dst \
+			--name rsync$$ eeacms/rsync:latest \
+			rsync --archive --delete --chmod=Da+rwx,Fa+rw --chown=1001 /src/ /dst >/dev/null
+		docker rm  rsync$$ >/dev/null
+        docker run \
+            --volume $2_`basename ${dir}`:/dst \
+            --name rsync$$ eeacms/rsync:latest \
+            chmod a+rwx /dst >/dev/null
+		docker rm  rsync$$ >/dev/null
+        docker run \
+            --volume $2_`basename ${dir}`:/dst \
+            --name rsync$$ eeacms/rsync:latest \
+            chown 1001 /dst >/dev/null
+		docker rm  rsync$$ >/dev/null
+	fi
+done
+
+# shared volumes via nfs
+for dir in volumes_nfs/*; do
+	if [ -d "$dir" ]; then
+		echo "Creating volume `basename $dir`_nfs"
+		if [ -f /etc/exports ]; then
+			grep -v "`pwd`/$dir" /etc/exports > /tmp/exports.$$ && mv /tmp/exports.$$ /etc/exports
+		fi
+		if [ $1 = "manager" ]; then
+			echo "`pwd`/$dir	139.99.42.177(rw,all_squash,no_subtree_check,anonuid=0) 92.222.89.93(rw,all_squash,no_subtree_check,anonuid=0) 127.0.0.1(rw,all_squash,no_subtree_check,anonuid=0)" >> /etc/exports
+			docker volume create --driver local --opt type=nfs \
+				--opt "o=addr=`hostname --fqdn`,rw,noatime,rsize=8192,wsize=8192,tcp,timeo=14,nfsvers=3,soft" \
+				--opt "device=`hostname --fqdn`:`pwd`/$dir" "`basename $dir`_nfs" >/dev/null
+			cat <<EOF
+Please run the following command on every worker node:
+docker volume create --driver local --opt type=nfs \
+	--opt "o=addr=`hostname --fqdn`,rw,noatime,rsize=8192,wsize=8192,tcp,timeo=14,nfsvers=3,soft" \
+	--opt "device=`hostname --fqdn`:`pwd`/$dir" "`basename $dir`_nfs" >/dev/null
+EOF
+		fi
+	fi
+done
+[ -f /etc/exports ] && exportfs -a
+
+if [ $1 = "manager" -a $# -ge 2 ]; then
+	[ -f docker-deploy.yml ] && docker stack deploy -c docker-deploy.yml $2
+fi
+
+[ -x ./bin/postinstall ] && ./bin/postinstall

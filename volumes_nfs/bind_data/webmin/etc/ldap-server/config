@@ -1,0 +1,10 @@
+init_name=slapd
+attr_count=6
+ldap_user=openldap
+config_file=/etc/ldap/slapd.d
+apply_cmd=/etc/init.d/slapd restart
+schema_dir=/etc/ldap/schema
+slapd=slapd
+start_cmd=/etc/init.d/slapd start
+browse_max=100
+stop_cmd=/etc/init.d/slapd stop

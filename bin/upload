@@ -1,0 +1,25 @@
+#!/bin/sh
+# Helper script to upload my docker stacks in the cloud
+# ./bin/upload vps183484.vps.ovh.ca stackname
+# ./bin/upload vps312177.ovh.net stackname
+#set -x
+
+if [ $# -eq 2 ]; then
+	stackname=${2}
+else
+#	dir=`pwd`
+#	stackname=`basename ${dir}`
+	stackname=$(basename `pwd`)
+fi
+if [ $# -lt 1 ]; then
+	echo "usage: ${0} hostname ${stackname}"
+	exit 1
+fi
+
+remote=root@${1}
+dir=/root/${stackname}
+
+rsync -rv --update --exclude '.git' --exclude '.DS_Store' --exclude 'backup' --delete-excluded . ${remote}:${dir}/
+#ssh ${remote} find ${dir}/volumes_nfs -type d -exec chmod 'a+rwx' {} '\;'
+#ssh ${remote} find ${dir}/volumes_nfs -type f -exec chmod 'a+rw' {} '\;'
+#ssh ${remote} chown -R 1001 ${dir}/volumes ${dir}/volumes_nfs

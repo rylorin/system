@@ -1,0 +1,72 @@
+version: '3.7'
+
+services:
+  bind:
+    image: sameersbn/bind:latest
+    environment:
+      ROOT_PASSWORD: cladie10
+    volumes:
+      - bind_data_nfs:/data:rw
+    ports:
+        - 53:53/tcp
+        - 53:53/udp
+        - 10000:10000/tcp
+    deploy:
+      placement:
+        constraints:
+          - node.platform.os == linux
+  smtp:
+    image: rylorin/postfix-relay:latest
+    environment:
+      POSTFIX_virtual_alias_domains: villamilawines.com 123-group.com
+    configs:
+      - source: virtual
+        target: /etc/postfix/conf.d/virtual
+    ports:
+      - 25:25/tcp
+    deploy:
+      placement:
+        constraints:
+          - node.platform.os == linux
+  websites:
+    image: abiosoft/caddy:1.0.3-no-stats
+    ports:
+      - 80:80/tcp
+      - 443:443/tcp
+      - 2015:2015/tcp
+    environment:
+      ACME_AGREE: "true"
+    volumes:
+      - core_sslcerts:/root/.caddy:rw
+      - web:/srv:ro
+    networks:
+      - portainer_agent_network
+      - dmz_network
+    configs:
+      - source: Caddyfile
+        target: /etc/Caddyfile
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.platform.os == linux
+      
+networks:
+  dmz_network:
+    driver: overlay
+    attachable: true
+  portainer_agent_network:
+    external: true
+    
+configs:
+  Caddyfile:
+    external: true
+  virtual:
+    external: true
+
+volumes:
+  web:
+  core_sslcerts:
+    external: true
+  bind_data_nfs:
+    external: true

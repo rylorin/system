@@ -1,0 +1,16 @@
+$ORIGIN femmes-lab.com.
+$ttl 38400
+@				IN	SOA	vps183484.vps.ovh.ca. ryl.free.fr. (
+						2018051200 ; serial
+						10800      ; refresh (3 hours)
+						3600       ; retry (1 hour)
+						604800     ; expire (1 week)
+						38400      ; minimum (10 hours 40 minutes)
+						)
+						IN	NS	vps312177.ovh.net.
+						IN	NS	vps183484.vps.ovh.ca.
+
+						IN	MX 10	vps312177.ovh.net.
+						IN	MX 20	vps183484.vps.ovh.ca.
+
+www					600	IN	CNAME	vps312177.ovh.net.

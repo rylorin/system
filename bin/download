@@ -1,0 +1,22 @@
+#!/bin/sh
+# ./bin/download vps312177.ovh.net stackname
+# ./bin/download vps183484.vps.ovh.ca stackname
+# set -x
+
+if [ $# -eq 2 ]; then
+	stackname=${2}
+else
+#	dir=`pwd`
+#	stackname=`basename ${dir}`
+	stackname=$(basename `pwd`)
+fi
+if [ $# -lt 1 ]; then
+	echo "usage: ${0} hostname ${stackname}"
+	exit 1
+fi
+
+remote=root@${1}
+dir=/root/${stackname}
+
+# rsync -rv --update ${remote}:${dir}/ .
+rsync --archive --update --compress --verbose ${remote}:${dir}/ .
