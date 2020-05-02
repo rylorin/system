@@ -1,6 +1,6 @@
 # system stack
 
-![](https://img.shields.io/github/license/rylorin/system)
+[![LICENSE: MIT](https://img.shields.io/github/license/rylorin/system)](https://raw.githubusercontent.com/rylorin/system/master/LICENSE)
 
 ## About this project
 
