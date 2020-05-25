@@ -4,7 +4,7 @@ services:
   bind:
     image: sameersbn/bind:latest
     environment:
-      ROOT_PASSWORD: cladie10
+      ROOT_PASSWORD: xxx
     volumes:
       - bind_data_nfs:/data:rw
     ports:
