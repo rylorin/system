@@ -1,5 +1,6 @@
 #!/bin/sh
-# https://www.digitalocean.com/community/tutorials/how-to-setup-dnssec-on-an-authoritative-bind-dns-server--2
+# tutorial https://www.digitalocean.com/community/tutorials/how-to-setup-dnssec-on-an-authoritative-bind-dns-server--2
+# for zone debugging https://dnssec-analyzer.verisignlabs.com/uciliste-sestine.hr
 PDIR=`pwd`
 ZONEDIR="/root/LoadBalancer/bind/bind/lib" #location of your zone files
 if [ $# -ne 2 ]; then

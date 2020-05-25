@@ -2,7 +2,7 @@
 $ORIGIN uciliste-sestine.hr.
 $ttl 38400
 @				IN	SOA	vps183484.vps.ovh.ca. ryl.free.fr. (
-							2020022700 ; serial
+							2020052500 ; serial
 							10800      ; refresh (3 hours)
 							3600       ; retry (1 hour)
 							604800     ; expire (1 week)
@@ -14,11 +14,9 @@ $ttl 38400
 						IN	MX 20	vps183484.vps.ovh.ca.
 						IN	MX 30	vps312177.ovh.net.
 
-; @					600	IN	CNAME	vps183484.vps.ovh.ca.
-www					600	IN	CNAME	vps312177.ovh.net.
-dev					600	IN	CNAME	vps183484.vps.ovh.ca.
-
-portainer			600	IN	CNAME	vps183484.vps.ovh.ca.
+@			600	IN	A	185.62.73.61
+www			600	IN	CNAME	vps312177.ovh.net.
+portainer		600	IN	CNAME	vps183484.vps.ovh.ca.
 
 $INCLUDE Kuciliste-sestine.hr.+007+27269.key
 $INCLUDE Kuciliste-sestine.hr.+007+32493.key

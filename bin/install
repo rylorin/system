@@ -2,9 +2,14 @@
 # Helper script to deploy my docker stacks
 #set -x
 
-if [ $# -eq 0 ]; then
-	echo "usage: $0 manager|worker stack_name"
+if [ $# -lt 1 ]; then
+	echo "usage: $0 manager|worker [stackname]"
 	exit 1
+fi
+if [ $# -eq 2 ]; then
+	stackname=${2}
+else
+	stackname=$(basename `pwd`)
 fi
 
 # configs
@@ -19,20 +24,20 @@ fi
 # local volumes
 for dir in volumes/*; do
 	if [ -d "$dir" ]; then
-		echo "Creating volume $2_`basename $dir`"
+		echo "Creating volume ${stackname}_`basename $dir`"
 		docker run \
 			--volume `pwd`/${dir}:/src \
-			--volume $2_`basename ${dir}`:/dst \
+			--volume ${stackname}_`basename ${dir}`:/dst \
 			--name rsync$$ eeacms/rsync:latest \
 			rsync --archive --delete --chmod=Da+rwx,Fa+rw --chown=1001 /src/ /dst >/dev/null
 		docker rm  rsync$$ >/dev/null
         docker run \
-            --volume $2_`basename ${dir}`:/dst \
+            --volume ${stackname}_`basename ${dir}`:/dst \
             --name rsync$$ eeacms/rsync:latest \
             chmod a+rwx /dst >/dev/null
 		docker rm  rsync$$ >/dev/null
         docker run \
-            --volume $2_`basename ${dir}`:/dst \
+            --volume ${stackname}_`basename ${dir}`:/dst \
             --name rsync$$ eeacms/rsync:latest \
             chown 1001 /dst >/dev/null
 		docker rm  rsync$$ >/dev/null
@@ -62,8 +67,8 @@ EOF
 done
 [ -f /etc/exports ] && exportfs -a
 
-if [ $1 = "manager" -a $# -ge 2 ]; then
-	[ -f docker-deploy.yml ] && docker stack deploy -c docker-deploy.yml $2
+if [ $1 = "manager" ]; then
+	[ -f docker-deploy.yml ] && docker stack deploy -c docker-deploy.yml ${stackname}
 fi
 
 [ -x ./bin/postinstall ] && ./bin/postinstall
