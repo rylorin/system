@@ -1,7 +1,0 @@
-stop_cmd=/etc/init.d/mon stop
-monshow=/usr/bin/monshow
-cfbasedir=/etc/mon
-mon_cgi=/var/www/cgi-bin/mon.cgi
-start_cmd=/etc/init.d/mon start
-restart_cmd=/etc/init.d/mon restart
-pid_file=/var/run/mon.pid
