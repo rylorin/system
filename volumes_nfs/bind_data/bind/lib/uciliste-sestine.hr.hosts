@@ -15,7 +15,7 @@ $ttl 38400
 						IN	MX 30	vps312177.ovh.net.
 
 @			600	IN	A	185.62.73.61
-www			600	IN	CNAME	vps312177.ovh.net.
+www			600	IN	CNAME	uciliste-sestine.hr.
 portainer		600	IN	CNAME	vps183484.vps.ovh.ca.
 
 $INCLUDE Kuciliste-sestine.hr.+007+27269.key
