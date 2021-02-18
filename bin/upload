@@ -19,7 +19,13 @@ fi
 remote=root@${1}
 dir=/root/${stackname}
 
-rsync -rv --update --exclude '.git' --exclude '.DS_Store' --exclude 'backup' --delete-excluded . ${remote}:${dir}/
+if [ -f ./etc/excludes ]; then
+	excludes="--exclude-from=./etc/excludes"
+else
+	excludes=""
+fi
+
+rsync -rv --update --exclude '.git' --exclude '.DS_Store' --exclude 'backup' ${excludes} --delete-excluded . ${remote}:${dir}/
 #ssh ${remote} find ${dir}/volumes_nfs -type d -exec chmod 'a+rwx' {} '\;'
 #ssh ${remote} find ${dir}/volumes_nfs -type f -exec chmod 'a+rw' {} '\;'
 #ssh ${remote} chown -R 1001 ${dir}/volumes ${dir}/volumes_nfs
