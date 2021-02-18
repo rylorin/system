@@ -1,3 +1,4 @@
+# Core system services for my projects
 version: '3.7'
 
 services:
@@ -28,39 +29,19 @@ services:
       placement:
         constraints:
           - node.platform.os == linux
-#  websites:
-#    image: abiosoft/caddy:1.0.3-no-stats
-#    ports:
-#      - 80:80/tcp
-#      - 443:443/tcp
-#      - 2015:2015/tcp
-#    environment:
-#      ACME_AGREE: "true"
-#    volumes:
-#      - core_sslcerts:/root/.caddy:rw
-#      - web:/srv:ro
-#    networks:
-#      - dmz_network
-#    configs:
-#      - source: Caddyfile58
-#        target: /etc/Caddyfile
-#    deploy:
-#      mode: global
-#      placement:
-#        constraints:
-#          - node.platform.os == linux
   websites:
-    image: caddy:latest
+    image: caddy:2.0.0-alpine
     ports:
       - 80:80/tcp
       - 443:443/tcp
-#    environment:
-#      ACME_AGREE: "true"
     volumes:
-      - core_sslcerts:/data/caddy:rw
-      - web:/usr/share/caddy:ro
+      - core_sslcerts:/data/:rw
+      - web:/usr/share/caddy/:ro
     networks:
+      # default network not used
       - dmz_network
+      # portainer_agent_network is necessary for reverse proxying to portainer web interface
+      - portainer_agent_network
     configs:
       - source: Caddyfile
         target: /etc/caddy/Caddyfile
@@ -74,10 +55,10 @@ networks:
   dmz_network:
     driver: overlay
     attachable: true
+  portainer_agent_network:
+    external: true
 
 configs:
-  Caddyfile58:
-    external: true
   Caddyfile:
     external: true
   virtual:
