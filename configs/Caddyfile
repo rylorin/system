@@ -14,15 +14,11 @@ www.123-group.com {
 www.villamilawines.com, en.villamilawines.com, fr.villamilawines.com, hr.villamilawines.com {
 	encode zstd gzip
 	reverse_proxy villamila_web:80
-#  tls off
-#  import tls
 }
 
 portainer.123-group.com, portainer.villamilawines.com {
 	encode zstd gzip
 	reverse_proxy portainer_portainer:9000
-#  tls off
-#  import tls
 }
 
 #http://vps312177.ovh.net {
