@@ -16,6 +16,9 @@ services:
       placement:
         constraints:
           - node.platform.os == linux
+          - node.role == manager
+#          - node.role == worker
+      replicas: 0
   smtp:
     image: rylorin/postfix-relay:latest
     environment:
@@ -30,7 +33,7 @@ services:
         constraints:
           - node.platform.os == linux
   websites:
-    image: caddy:2.0.0-alpine
+    image: caddy:2.4.6-alpine
     ports:
       - 80:80/tcp
       - 443:443/tcp
@@ -38,7 +41,6 @@ services:
       - core_sslcerts:/data/:rw
       - web:/usr/share/caddy/:ro
     networks:
-      # default network not used
       - dmz_network
       # portainer_agent_network is necessary for reverse proxying to portainer web interface
       - portainer_agent_network
