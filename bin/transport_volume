@@ -1,0 +1,5 @@
+#!/bin/sh
+set -x
+docker run --volume portainer_portainer_data:/tmp/from --rm --name rsync$$ alpine:latest ash -c "cd /tmp/from ; tar -czf - ." \
+	| ssh root@vmi789953.contaboserver.net \
+		'docker run --rm -i --volume portainer_portainer_data:/tmp/to --name rsync$$ alpine:latest ash -c "cd /tmp/to ; tar -xpvzf -"'
