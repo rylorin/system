@@ -1,6 +1,6 @@
 #!/bin/sh
-# ./bin/download vps312177.ovh.net stackname
-# ./bin/download vps183484.vps.ovh.ca stackname
+# ./bin/download root@vps1234.ovh.net stackname
+# ./bin/download root@vps1234.vps.ovh.ca stackname
 # set -x
 
 if [ $# -lt 1 ]; then
@@ -13,7 +13,7 @@ else
 	stackname=$(basename `pwd`)
 fi
 
-remote=root@${1}
+remote=${1}
 dir=/root/${stackname}
 
 # rsync -rv --update ${remote}:${dir}/ .
