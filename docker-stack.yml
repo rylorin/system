@@ -19,22 +19,22 @@ services:
           - node.role == manager
 #          - node.role == worker
       replicas: 0
-  smtpd:
+  smtp:
     image: rylorin/postfix-relay:latest
     environment:
-      POSTFIX_virtual_alias_domains: villamilawines.com
+      POSTFIX_virtual_alias_domains: villamilawines.com 123-group.com
     configs:
       - source: virtual
         target: /etc/postfix/conf.d/virtual
     ports:
       - 25:25/tcp
-      - 465:465/tcp
     deploy:
       placement:
         constraints:
           - node.platform.os == linux
+      replicas: 0
   websites:
-    image: caddy:2.6.4-alpine
+    image: caddy:2.11.1-alpine
     ports:
       - 80:80/tcp
       - 443:443/tcp
@@ -42,11 +42,12 @@ services:
       - core_sslcerts:/data/:rw
       - web:/usr/share/caddy/:ro
     networks:
+      # connect to our DMZ network 
       - dmz_network
-      # portainer_agent_network is necessary for reverse proxying to portainer web interface
+      # portainer_agent_network is necessary to reverse proxy to portainer web interface
       - portainer_agent_network
     configs:
-      - source: Caddyfile
+      - source: Caddyfile_13
         target: /etc/caddy/Caddyfile
     deploy:
       mode: global
@@ -62,7 +63,7 @@ networks:
     external: true
 
 configs:
-  Caddyfile:
+  Caddyfile_13:
     external: true
   virtual:
     external: true
