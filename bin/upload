@@ -4,19 +4,20 @@
 # ./bin/upload root@vps123.ovh.net stackname
 #set -x
 
-if [ $# -eq 2 ]; then
-	stackname=${2}
-else
-#	dir=`pwd`
-#	stackname=`basename ${dir}`
-	stackname=$(basename `pwd`)
-fi
 if [ $# -lt 1 ]; then
 	echo "usage: ${0} hostname ${stackname}"
 	exit 1
 fi
 
 remote=${1}
+shift
+
+if [ $# -ge 1 ]; then
+	stackname=${1}
+	shift
+else
+	stackname=$(basename `pwd`)
+fi
 dir=/root/${stackname}
 
 if [ -f ./etc/excludes ]; then
@@ -25,9 +26,8 @@ else
 	excludes=""
 fi
 
-rsync -rv --update --exclude '.git' --exclude '.DS_Store' --exclude 'backup' ${excludes} --delete-excluded . ${remote}:${dir}/
-#ssh ${remote} find ${dir}/volumes_nfs -type d -exec chmod 'a+rwx' {} '\;'
-#ssh ${remote} find ${dir}/volumes_nfs -type f -exec chmod 'a+rw' {} '\;'
-#ssh ${remote} chown -R 1001 ${dir}/volumes ${dir}/volumes_nfs
+#  --delete-excluded
+
+rsync -r --update --compress --verbose --exclude '.git' --exclude '.DS_Store' --exclude 'backup' ${excludes} "$@" . ${remote}:${dir}/
 
 ssh ${remote} "cd ${dir} && [ -x ./bin/postupload ] && ./bin/postupload"

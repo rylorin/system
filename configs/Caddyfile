@@ -1,59 +1,63 @@
 # Caddyfile for my docker swarm web frontend
 
-#(tls) {
-#  tls ryl@free.fr {
-#    protocols tls1.2 tls1.3
-#    ciphers ECDHE-ECDSA-AES128-GCM-SHA256 ECDHE-RSA-AES128-GCM-SHA256 ECDHE-ECDSA-AES256-GCM-SHA384 ECDHE-RSA-AES256-GCM-SHA384 ECDHE-ECDSA-WITH-CHACHA20-POLY1305 ECDHE-RSA-WITH-CHACHA20-POLY1305
-#  }
-#  # the following header will redirect http requests to https
-#  header Strict-Transport-Security "max-age=300;"
-#}
+#
+# Portainer access
+#
 
-www.123-group.com {
-	encode zstd gzip
-	reverse_proxy PortfolioManager_web:80 
-#  tls off
-#  import tls
-	header Strict-Transport-Security "max-age=3600;"
-}
-# the following is not working with automatic https
-#123-group.com {
-#	redir https://www.123-group.com{uri}
-#}
-
-# villamilawines.com, not working without prefix
-www.villamilawines.com, en.villamilawines.com, fr.villamilawines.com, hr.villamilawines.com {
-	encode zstd gzip
-	reverse_proxy villamila_web:80 
-#  tls off
-#  import tls
-}
-
-portainer.123-group.com, portainer.villamilawines.com {
+portainer.villamilawines.com {
 	encode zstd gzip
 	reverse_proxy portainer_portainer:9000 
-#  tls off
-#  import tls
 }
 
-siberian.123-group.com {
+portainer.lorin.top {
 	encode zstd gzip
-	reverse_proxy siberian_web:80 
-#  tls off
-#  import tls
+	reverse_proxy portainer_portainer:9000 
 }
 
-
-#http://vps312177.ovh.net {
-#  proxy / sestine_web:8080 {
-#    header_up X-Forwarded-Proto https
-#    insecure_skip_verify
-#  }
-#  tls off
-#}
+#
+# Local host access
+#
 
 http://vmi789953.contaboserver.net {
 	root * /usr/share/caddy/
 	encode zstd gzip
 	file_server browse
+}
+
+#
+# villamilawines.com domain
+#
+
+# villamilawines.com, not working without prefix
+www.villamilawines.com, en.villamilawines.com, fr.villamilawines.com, hr.villamilawines.com {
+	encode zstd gzip
+	reverse_proxy villamila_web:80 
+}
+
+#
+# lorin.top domain
+#
+
+portfolio.lorin.top {
+	encode zstd gzip
+	reverse_proxy wheel_trader_nodebot:3001
+}
+
+michka.lorin.top {
+	encode zstd gzip
+	reverse_proxy michka_streamlit:8501
+}
+
+webapp.lorin.top {
+	encode zstd gzip
+	reverse_proxy michka_webapp:8501
+}
+
+n8n.lorin.top {
+	encode zstd gzip
+	reverse_proxy n8n_n8n:5678
+}
+
+wishlist.lorin.top {
+	redir https://lorin.zelira.eu{uri} html
 }

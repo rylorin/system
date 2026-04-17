@@ -7,14 +7,22 @@ if [ $# -lt 1 ]; then
 	echo "usage: ${0} hostname [stackname]"
 	exit 1
 fi
-if [ $# -eq 2 ]; then
-	stackname=${2}
+
+remote=${1}
+shift
+
+if [ $# -ge 1 ]; then
+	stackname=${1}
+	shift
 else
 	stackname=$(basename `pwd`)
 fi
-
-remote=${1}
 dir=/root/${stackname}
 
-# rsync -rv --update ${remote}:${dir}/ .
-rsync --archive --update --compress --verbose ${remote}:${dir}/ .
+if [ -f ./etc/excludes ]; then
+	excludes="--exclude-from=./etc/excludes"
+else
+	excludes=""
+fi
+
+rsync --archive --update --compress --verbose ${excludes} "$@" ${remote}:${dir}/ .
