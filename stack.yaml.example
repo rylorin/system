@@ -4,6 +4,9 @@
 # Default remote (override with --remote on the command line)
 remote: root@vmi789953.contaboserver.net
 
+# Stack name (defaults to the directory name if omitted)
+# stack_name: my-custom-stack-name
+
 # Docker image used for volume synchronisation
 rsync_image: eeacms/rsync:latest
 

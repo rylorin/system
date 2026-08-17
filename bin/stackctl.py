@@ -116,12 +116,13 @@ def _expand(env: dict, value):
 class Config:
     def __init__(self, stack_dir: Path, remote: t.Optional[str] = None):
         self.stack_dir = stack_dir
-        self.stack_name = stack_dir.name
         self.env = _dotenv(stack_dir / ENV_FILE)
         cfg: dict = {}
         cfg_path = stack_dir / CONFIG_NAME
         if cfg_path.exists():
             cfg = _load_yaml(cfg_path) or {}
+        
+        self.stack_name = str(cfg.get("stack_name") or stack_dir.name)
         self.remote = remote or cfg.get("remote")
         self.rsync_image = cfg.get("rsync_image") or DEFAULT_RSYNC_IMAGE
         try:
