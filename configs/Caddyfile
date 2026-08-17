@@ -1,12 +1,25 @@
 # Caddyfile for my docker swarm web frontend
 
+(secure) {
+    forward_auth http://authelia:9091 {
+        uri /api/authz/forward-auth
+        copy_headers Remote-User Remote-Groups Remote-Email
+        header_up Host {upstream_hostport}
+    }
+}
+
+authelia.lorin.top {
+	encode zstd gzip
+	reverse_proxy system_authelia:9091
+}
+
 #
 # Portainer access
 #
 
 portainer.villamilawines.com {
 	encode zstd gzip
-	reverse_proxy portainer_portainer:9000 
+	reverse_proxy portainer_portainer:9000
 }
 
 portainer.lorin.top {
@@ -60,4 +73,21 @@ n8n.lorin.top {
 
 wishlist.lorin.top {
 	redir https://lorin.zelira.eu{uri} html
+}
+
+claw.lorin.top {
+	encode zstd gzip
+	reverse_proxy claw_claw:18789
+}
+
+amnezia.lorin.top {
+    import secure
+	encode zstd gzip
+	reverse_proxy 173.212.221.67:8080
+}
+
+omniroute.lorin.top {
+    import secure
+	encode zstd gzip
+	reverse_proxy omniroute_prod:20128
 }

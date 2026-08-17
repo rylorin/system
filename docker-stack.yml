@@ -1,7 +1,16 @@
 # Core system services for my projects
-version: '3.7'
+version: "3.7"
 
 services:
+  authelia:
+    image: authelia/authelia:latest
+    volumes:
+      - /root/system/volumes/authelia:/config/:rw
+    ports:
+      - 9091:9091/tcp
+    networks:
+      - dmz_network
+
   bind:
     image: sameersbn/bind:latest
     environment:
@@ -9,16 +18,17 @@ services:
     volumes:
       - bind_data_nfs:/data:rw
     ports:
-        - 53:53/tcp
-        - 53:53/udp
-        - 10000:10000/tcp
+      - 53:53/tcp
+      - 53:53/udp
+      - 10000:10000/tcp
     deploy:
       placement:
         constraints:
           - node.platform.os == linux
           - node.role == manager
-#          - node.role == worker
+      #          - node.role == worker
       replicas: 0
+
   smtp:
     image: rylorin/postfix-relay:latest
     environment:
@@ -33,8 +43,12 @@ services:
         constraints:
           - node.platform.os == linux
       replicas: 0
+
   websites:
-    image: caddy:2.11.1-alpine
+    image: caddy:2.11.4
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
     ports:
       - 80:80/tcp
       - 443:443/tcp
@@ -42,29 +56,33 @@ services:
       - core_sslcerts:/data/:rw
       - web:/usr/share/caddy/:ro
     networks:
-      # connect to our DMZ network 
+      # connect to our DMZ network
       - dmz_network
       # portainer_agent_network is necessary to reverse proxy to portainer web interface
       - portainer_agent_network
     configs:
-      - source: Caddyfile_13
+      - source: Caddyfile
         target: /etc/caddy/Caddyfile
     deploy:
       mode: global
       placement:
         constraints:
           - node.platform.os == linux
-      
+
 networks:
   dmz_network:
     driver: overlay
     attachable: true
   portainer_agent_network:
     external: true
+  host:
+    name: host
+    external: true
 
 configs:
-  Caddyfile_13:
+  Caddyfile:
     external: true
+    name: "${CADDYFILE:-system_Caddyfile}"
   virtual:
     external: true
 
