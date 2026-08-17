@@ -5,46 +5,84 @@
 
 ## About this project
 
-This project contains all my docker swarm core services & utility commands.
+Core Docker Swarm services for my projects, plus a Python-based toolkit to
+back up, upload, install and manage stacks from the command line.
+The `bin/stackctl.py` tool lives here but can operate on **any** stack by
+running it from that stack's directory (stack name = basename of the CWD).
+
+Requires: `python3`, `pyyaml` (`pip install pyyaml`).
 
 ## Services
 
-These services run on a docker swarm, deployed in a "system" stack
-
 ### bind
 
-Built on sameersbn/bind docker image.
+DNS server (sameersbn/bind).
 
 ### smtp
 
-Built on rylorin/postfix-relay docker image.
+Postfix relay (rylorin/postfix-relay).
 
-### websites 
+### websites
 
-Reverse proxy and http static files server.
+Reverse proxy and static file server (Caddy 2.11.4).
 
 ## Commands
 
-`backup_volumes` backup a docker volume to local file system.
+All commands are wrappers around `bin/stackctl.py` and accept the same flags.
+Run `bin/stackctl.py <cmd> --help` for details.
 
-`download` copy files from remote server to local file system.
+| Wrapper | Action |
+|---|---|
+| `bin/download` | Back up the stack: rsync the whole tree, capture docker state, configs and named volumes into `backup/<timestamp>/` |
+| `bin/upload` | Push the stack to the remote (rsync) and run `bin/postupload` if present |
+| `bin/install` | Install on a manager: load configs, build volumes, configure NFS, deploy the stack. Pass `worker` to skip configs/NFS/deploy |
+| `bin/backup-volumes` | Back up named volumes into the local `volumes/` tree (for stacks using volume files) |
+| `bin/postinstall` | Stack-specific post-install hook, called at the end of `install` |
 
-`install` install stack ie load config files, build local docker volumes, setup docker volumes over NFS, deploy stack.
+Common flags:
 
-`postintall` specific postinstallation tasks, called from install script.
-
-`upload` copy files from local file system to remote server.
+- `--remote root@host`  override the remote set in `stack.yaml`
+- `--dry-run`            show commands without executing them
 
 ## Hierarchy
 
-All my docker stacks have a common structure:
+```
+bin/                  stackctl.py + wrappers + stack-specific hooks
+configs/              docker config source files (Caddyfile, virtual, …)
+volumes/              files that populate a named Docker volume on install
+volumes_nfs/          NFS-shared data wrapped in a "local" Docker volume
+backup/               (gitignored) snapshots produced by download
+docker-compose.yml    stack specification (secrets via ${VAR} from .env)
+stack.yaml            per-stack config (remote, nfs_nodes, …)
+.env                  secrets, NOT committed (.env.example shows the format)
+requirements.txt      pyyaml (optional, but required for full compose parsing)
+```
 
-`bin` contain stack specific scripts ie postinstall.
+## Backup (`download`)
 
-`config` docker config files.
+`bin/download` creates `backup/<YYYYMMDD-HHMMSS>/` containing:
 
-`volumes` a local docker volume will be created with each subdirectory content.
+- `docker-state.json`  swarm info + every service inspect
+- `configs/<name>/data` decoded docker config content
+- `volumes/<name>/`    content of named volumes not bound to the repo tree
+- `rebuild.sh`         aide-mémoire for restoring on a fresh node
+- `backup.log`         full log of the backup session
 
-`volumes_nfs` files will be shared using NFS (must be configured and running on host) and wrapped in a "local" docker volume.
+Rotation is controlled by `backup_keep` in `stack.yaml` (default 7).
 
-`docker-stack.yml` docker stack deploy specification.
+## Rebuild on a fresh VPS
+
+1. Push the repo: `bin/upload --remote root@new-host`
+2. On the host: `cd /root/<stack> && bin/install manager`
+3. Restore named volumes and configs from the `backup/` snapshot
+   (see `backup/<ts>/rebuild.sh` for reference commands)
+
+## Secrets
+
+`ROOT_PASSWORD` and other sensitive values are referenced as `${ROOT_PASSWORD}`
+in `docker-compose.yml` and sourced from `.env` (gitignored). Copy
+`.env.example` to `.env` and fill in the real values.
+
+## License
+
+MIT

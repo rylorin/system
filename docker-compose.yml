@@ -1,7 +1,7 @@
-# Core system services for my projects
-version: "3.7"
+# Core system services for my VPS
 
 services:
+  
   authelia:
     image: authelia/authelia:latest
     volumes:
@@ -10,25 +10,25 @@ services:
       - 9091:9091/tcp
     networks:
       - dmz_network
-
+      
   bind:
     image: sameersbn/bind:latest
     environment:
-      ROOT_PASSWORD: xxx
+      ROOT_PASSWORD: ${ROOT_PASSWORD}
     volumes:
       - bind_data_nfs:/data:rw
     ports:
-      - 53:53/tcp
-      - 53:53/udp
-      - 10000:10000/tcp
+        - 53:53/tcp
+        - 53:53/udp
+        - 10000:10000/tcp
     deploy:
       placement:
         constraints:
           - node.platform.os == linux
           - node.role == manager
-      #          - node.role == worker
+#          - node.role == worker
       replicas: 0
-
+      
   smtp:
     image: rylorin/postfix-relay:latest
     environment:
@@ -43,7 +43,7 @@ services:
         constraints:
           - node.platform.os == linux
       replicas: 0
-
+      
   websites:
     image: caddy:2.11.4
     restart: unless-stopped
@@ -56,7 +56,7 @@ services:
       - core_sslcerts:/data/:rw
       - web:/usr/share/caddy/:ro
     networks:
-      # connect to our DMZ network
+      # connect to our DMZ network 
       - dmz_network
       # portainer_agent_network is necessary to reverse proxy to portainer web interface
       - portainer_agent_network
@@ -68,7 +68,7 @@ services:
       placement:
         constraints:
           - node.platform.os == linux
-
+    
 networks:
   dmz_network:
     driver: overlay
@@ -78,7 +78,7 @@ networks:
   host:
     name: host
     external: true
-
+    
 configs:
   Caddyfile:
     external: true

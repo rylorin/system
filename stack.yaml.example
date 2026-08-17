@@ -1,0 +1,18 @@
+# Per-stack configuration for stackctl.
+# Copy to stack.yaml in the stack root directory and adjust.
+
+# Default remote (override with --remote on the command line)
+remote: root@vmi789953.contaboserver.net
+
+# Docker image used for volume synchronisation
+rsync_image: eeacms/rsync:latest
+
+# Number of backups to keep on each download
+backup_keep: 10
+
+# NFS exporter nodes (used by `install`)
+nfs_nodes:
+  - 127.0.0.1
+
+# Extra rsync exclude patterns (append to the built-in excludes)
+excludes: []

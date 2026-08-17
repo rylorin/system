@@ -1,0 +1,8 @@
+remote: root@vmi789953.contaboserver.net
+rsync_image: eeacms/rsync:latest
+backup_keep: 5
+nfs_nodes:
+  - 139.99.42.177
+  - 92.222.89.93
+  - 127.0.0.1
+excludes: []

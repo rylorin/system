@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=https://www.authelia.com/schemas/latest/json-schema/user-database.json
+users:
+  rylorin:
+    disabled: false
+    displayname: 'Ronan-Yann Lorin'
+    password: '$argon2id$v=19$m=65536,t=3,p=4$ykr6IAT3JwsY5vLXQiPOoA$jruN2sv+8yCBm5vDCa8wcpob4IK9/bSNpeOOjs3UXpo'
+    email: 'rylorin@gmail.com'
+    groups:
+      - 'admins'
+      - 'users'

@@ -1,28 +1,4 @@
 #!/bin/sh
-# ./bin/download root@vps1234.ovh.net stackname
-# ./bin/download root@vps1234.vps.ovh.ca stackname
-# set -x
-
-if [ $# -lt 1 ]; then
-	echo "usage: ${0} hostname [stackname]"
-	exit 1
-fi
-
-remote=${1}
-shift
-
-if [ $# -ge 1 ]; then
-	stackname=${1}
-	shift
-else
-	stackname=$(basename `pwd`)
-fi
-dir=/root/${stackname}
-
-if [ -f ./etc/excludes ]; then
-	excludes="--exclude-from=./etc/excludes"
-else
-	excludes=""
-fi
-
-rsync --archive --update --compress --verbose ${excludes} "$@" ${remote}:${dir}/ .
+# stackctl download (back up the stack: rsync + full docker state)
+# Operates on the stack in the current directory.
+exec python3 "$(dirname "$0")/stackctl.py" download "$@"

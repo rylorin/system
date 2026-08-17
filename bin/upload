@@ -1,33 +1,4 @@
 #!/bin/sh
-# Helper script to upload my docker stacks in the cloud
-# ./bin/upload root@vps1234.vps.ovh.ca stackname
-# ./bin/upload root@vps123.ovh.net stackname
-#set -x
-
-if [ $# -lt 1 ]; then
-	echo "usage: ${0} hostname ${stackname}"
-	exit 1
-fi
-
-remote=${1}
-shift
-
-if [ $# -ge 1 ]; then
-	stackname=${1}
-	shift
-else
-	stackname=$(basename `pwd`)
-fi
-dir=/root/${stackname}
-
-if [ -f ./etc/excludes ]; then
-	excludes="--exclude-from=./etc/excludes"
-else
-	excludes=""
-fi
-
-#  --delete-excluded
-
-rsync -r --update --compress --verbose --exclude '.git' --exclude '.DS_Store' --exclude 'backup' ${excludes} "$@" . ${remote}:${dir}/
-
-ssh ${remote} "cd ${dir} && [ -x ./bin/postupload ] && ./bin/postupload"
+# stackctl upload (push the stack to the remote)
+# Operates on the stack directory of the current working directory.
+exec python3 "$(dirname "$0")/stackctl.py" upload "$@"

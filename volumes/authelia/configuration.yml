@@ -1,0 +1,68 @@
+theme: light
+log:
+  level: debug  # ou 'trace' pour encore plus de détails
+
+server:
+  endpoints:
+    authz:
+      forward-auth:
+        implementation: 'ForwardAuth'
+
+# Secret for issuing password reset tokens
+identity_validation:
+  reset_password:
+    jwt_secret: 'change_me_to_a_very_long_secure_secret_string'
+
+# Session configuration
+session:
+  cookies:
+    - domain: 'lorin.top'
+      authelia_url: 'https://auth.lorin.top'
+      default_redirection_url: 'https://www.lorin.top'
+
+# Local user database file backend
+authentication_backend:
+  file:
+    path: '/config/users_database.yml'
+    watch: true
+
+# Local SQLite storage for internal state/2FA
+storage:
+  local:
+    path: '/config/db.sqlite'
+  encryption_key: 'myloooooongencryptionkey'
+
+# Two-Factor (TOTP) settings
+totp:
+  issuer: 'lorin.top'
+
+notifier:
+  disable_startup_check: false
+  filesystem:
+    filename: '/config/notification.txt'
+
+# Access control rules
+access_control:
+  default_policy: 'deny'
+  rules:
+
+    - domain: 'www.lorin.top'
+      policy: 'bypass'
+
+    - domain: 'amnezia.lorin.top'
+      resources:
+        - '^/api/.*'
+      policy: 'bypass'
+    - domain: 'amnezia.lorin.top'
+      policy: 'one_factor'
+      subject:
+        - 'group:admins'
+
+    - domain: 'omniroute.lorin.top'
+      resources:
+        - '^/api/.*'
+      policy: 'bypass'
+    - domain: 'omniroute.lorin.top'
+      subject:
+        - 'group:admins'
+      policy: 'one_factor'
