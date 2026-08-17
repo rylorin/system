@@ -5,3 +5,4 @@
 __pycache__
 .venv/
 /volumes/authelia/db.sqlite
+/volumes/authelia/notification.txt

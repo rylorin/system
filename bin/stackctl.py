@@ -196,16 +196,50 @@ def referenced_configs(doc: dict) -> t.List[str]:
     return result
 
 
-def config_docker_names(doc: dict) -> t.Dict[str, str]:
-    """Map compose config name -> actual docker config name (resolving `name:`)."""
+def config_docker_names(doc: dict, state: dict, env: dict) -> t.Dict[str, str]:
+    """Map compose config name -> actual docker config name (from active Swarm state if possible)."""
+    mapping: t.Dict[str, str] = {}
+    
+    # 1. Start with defaults from compose file (expanded with local .env)
     decl = (doc or {}).get("configs", {}) or {}
-    out: t.Dict[str, str] = {}
     for key, spec in decl.items():
         if isinstance(spec, dict) and spec.get("name"):
-            out[key] = str(spec["name"])
+            mapping[key] = _expand(env, str(spec["name"]))
         else:
-            out[key] = key
-    return out
+            mapping[key] = key
+
+    # 2. Override with TRUTH from swarm state (no guessing needed)
+    services = (doc or {}).get("services", {}) or {}
+    swarm_services = state.get("services", {})
+    
+    for svc_name, svc_decl in services.items():
+        swarm_svc = None
+        for s_name, s_data in swarm_services.items():
+            if s_name.endswith(f"_{svc_name}") or s_name == svc_name:
+                swarm_svc = s_data
+                break
+        if not swarm_svc or not isinstance(swarm_svc, dict):
+            continue
+            
+        active_configs = swarm_svc.get("Spec", {}).get("TaskTemplate", {}).get("ContainerSpec", {}).get("Configs") or []
+        
+        for item in svc_decl.get("configs") or []:
+            source = None
+            target = None
+            if isinstance(item, str):
+                source = item
+                target = f"/{item}"
+            elif isinstance(item, dict):
+                source = item.get("source")
+                target = item.get("target") or f"/{source}"
+                
+            if source and target:
+                for ac in active_configs:
+                    if ac.get("File", {}).get("Name") == target:
+                        mapping[source] = ac.get("ConfigName")
+                        break
+                        
+    return mapping
 
 
 def referenced_volumes(doc: dict) -> t.List[str]:
@@ -341,7 +375,7 @@ def cmd_download(cfg: Config, args):
             state[label] = out
 
     rc, out = run.remote(
-        remote, f"docker stack services {cfg.stack_name} --format '{{.Name}}'", check=False)
+        remote, f"docker stack services {cfg.stack_name} --format '{{{{.Name}}}}'", check=False)
     for name in (ln.strip() for ln in (out or "").splitlines() if ln.strip()):
         rc2, so = run.remote(
             remote, f"docker service inspect {name} --format '{{{{json .}}}}'", check=False)
@@ -400,7 +434,8 @@ def cmd_download(cfg: Config, args):
                 example_file.write_text("\n".join(lines) + "\n")
 
     # 3) docker configs
-    docker_names = config_docker_names(doc)
+    current_env = _dotenv(cfg.stack_dir / ENV_FILE)
+    docker_names = config_docker_names(doc, state, current_env)
     for cname in confs:
         real = docker_names.get(cname, cname)
         rc, out = run.remote(
