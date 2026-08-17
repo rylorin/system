@@ -353,6 +353,52 @@ def cmd_download(cfg: Config, args):
 
     (snap / "docker-state.json").write_text(json.dumps(state, indent=2))
 
+    # 2.5) Extract env vars and update local .env
+    compose_text = (cfg.stack_dir / COMPOSE_NAME).read_text() if (cfg.stack_dir / COMPOSE_NAME).exists() else ""
+    required_vars = set(m.group(1) for m in _EXPAND.finditer(compose_text))
+    
+    if required_vars and not args.dry_run:
+        env_updates = {}
+        for svc_data in state.get("services", {}).values():
+            if not isinstance(svc_data, dict):
+                continue
+            spec_env = svc_data.get("Spec", {}).get("TaskTemplate", {}).get("ContainerSpec", {}).get("Env") or []
+            for item in spec_env:
+                if "=" in item:
+                    k, v = item.split("=", 1)
+                    if k in required_vars:
+                        env_updates[k] = v
+        
+        if env_updates:
+            env_file = cfg.stack_dir / ENV_FILE
+            current_env = _dotenv(env_file)
+            changed = False
+            for k, v in env_updates.items():
+                if current_env.get(k) != v:
+                    current_env[k] = v
+                    changed = True
+            
+            if changed:
+                lines = []
+                for k in sorted(current_env.keys()):
+                    lines.append(f"{k}={current_env[k]}")
+                env_file.write_text("\n".join(lines) + "\n")
+                info(f"  updated {ENV_FILE} with {len(env_updates)} active variables from swarm", log)
+
+            # Update .env.example
+            example_file = cfg.stack_dir / f"{ENV_FILE}.example"
+            example_env = _dotenv(example_file)
+            example_changed = False
+            for k in required_vars:
+                if k not in example_env:
+                    example_env[k] = "CHANGE_ME"
+                    example_changed = True
+            if example_changed:
+                lines = []
+                for k in sorted(example_env.keys()):
+                    lines.append(f"{k}={example_env[k]}")
+                example_file.write_text("\n".join(lines) + "\n")
+
     # 3) docker configs
     docker_names = config_docker_names(doc)
     for cname in confs:
