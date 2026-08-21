@@ -490,9 +490,9 @@ def cmd_download(cfg: Config, args):
         except Exception as e:
             info(f"  config {cname}: decode failed ({e})", log)
             continue
-        cdir = snap / "configs" / _ex_safe(cname)
+        cdir = snap / "configs"
         cdir.mkdir(parents=True, exist_ok=True)
-        (cdir / "data").write_bytes(data)
+        (cdir / _ex_safe(cname)).write_bytes(data)
         info(f"  config {cname}: {len(data)} bytes saved", log)
 
     # 4) named volumes bound to a file-system path are already covered by rsync;
@@ -529,7 +529,7 @@ def _write_rebuild(snap: Path, cfg: Config, remote: str, vols, confs):
         "# 3) recreate docker configs:",
     ]
     for c in confs:
-        lines.append(f"  docker config create {c} {snap}/configs/{_ex_safe(c)}/data 2>/dev/null || true")
+        lines.append(f"  docker config create {c} {snap}/configs/{_ex_safe(c)} 2>/dev/null || true")
     lines.append("")
     lines.append("# 4) create named volumes and deploy:")
     for v in vols:
