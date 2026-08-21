@@ -124,6 +124,7 @@ class Config:
         
         self.stack_name = str(cfg.get("stack_name") or stack_dir.name)
         self.remote = remote or cfg.get("remote")
+        self._remote_dir = cfg.get("remote_dir")
         self.rsync_image = cfg.get("rsync_image") or DEFAULT_RSYNC_IMAGE
         try:
             self.backup_keep = int(cfg.get("backup_keep") or DEFAULT_BACKUP_KEEP)
@@ -135,7 +136,9 @@ class Config:
 
     @property
     def remote_dir(self) -> str:
-        return f"/root/{self.stack_name}"
+        if self._remote_dir:
+            return str(self._remote_dir)
+        return self.stack_dir.name
 
 
 # ---------------------------------------------------------------------------
@@ -304,7 +307,7 @@ def _local_volume_mounts(doc: dict) -> t.Dict[str, str]:
 
 
 def volume_sync_down(cfg: Config, remote: str, vol: str, dst: Path, run: Runner) -> int:
-    tmp_dir = f"{cfg.remote_dir}/.stackctl_dump_{vol}"
+    tmp_dir = f"/tmp/.stackctl_dump_{vol}"
     
     # 1. Copie du contenu du volume vers un répertoire temporaire sur le VPS
     shell = (
