@@ -31,18 +31,18 @@ Reverse proxy and static file server (Caddy 2.11.4).
 All commands are wrappers around `bin/stackctl.py` and accept the same flags.
 Run `bin/stackctl.py <cmd> --help` for details.
 
-| Wrapper | Action |
-|---|---|
-| `bin/download` | Back up the stack: rsync the whole tree, capture docker state, configs and named volumes into `backup/<timestamp>/` |
-| `bin/upload` | Push the stack to the remote (rsync) and run `bin/postupload` if present |
-| `bin/install` | Install on a manager: load configs, build volumes, configure NFS, deploy the stack. Pass `worker` to skip configs/NFS/deploy |
-| `bin/backup-volumes` | Back up named volumes into the local `volumes/` tree (for stacks using volume files) |
-| `bin/postinstall` | Stack-specific post-install hook, called at the end of `install` |
+| Wrapper              | Action                                                                                                                       |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `bin/download`       | Back up the stack: rsync the whole tree, capture docker state, configs and named volumes into `backup/<timestamp>/`          |
+| `bin/upload`         | Push the stack to the remote (rsync) and run `bin/postupload` if present                                                     |
+| `bin/install`        | Install on a manager: load configs, build volumes, configure NFS, deploy the stack. Pass `worker` to skip configs/NFS/deploy |
+| `bin/backup-volumes` | Back up named volumes into the local `volumes/` tree (for stacks using volume files)                                         |
+| `bin/postinstall`    | Stack-specific post-install hook, called at the end of `install`                                                             |
 
 Common flags:
 
-- `--remote root@host`  override the remote set in `stack.yaml`
-- `--dry-run`            show commands without executing them
+- `--remote root@host` override the remote set in `stack.yaml`
+- `--dry-run` show commands without executing them
 
 ## Hierarchy
 
@@ -62,11 +62,11 @@ requirements.txt      pyyaml (optional, but required for full compose parsing)
 
 `bin/download` creates `backup/<YYYYMMDD-HHMMSS>/` containing:
 
-- `docker-state.json`  swarm info + every service inspect
+- `docker-state.json` swarm info + every service inspect
 - `configs/<name>/data` decoded docker config content
-- `volumes/<name>/`    content of named volumes not bound to the repo tree
-- `rebuild.sh`         aide-mémoire for restoring on a fresh node
-- `backup.log`         full log of the backup session
+- `volumes/<name>/` content of named volumes not bound to the repo tree
+- `rebuild.sh` aide-mémoire for restoring on a fresh node
+- `backup.log` full log of the backup session
 
 Rotation is controlled by `backup_keep` in `stack.yaml` (default 7).
 

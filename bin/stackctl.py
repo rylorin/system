@@ -259,6 +259,26 @@ def referenced_volumes(doc: dict) -> t.List[str]:
     return result
 
 
+def volume_docker_names(doc: dict, stack_name: str, env: dict) -> t.Dict[str, str]:
+    """Map compose volume name -> actual docker volume name."""
+    mapping: t.Dict[str, str] = {}
+    volumes_decl = (doc or {}).get("volumes", {}) or {}
+    
+    for v in referenced_volumes(doc):
+        decl = volumes_decl.get(v)
+        if isinstance(decl, dict):
+            if decl.get("external"):
+                name = decl.get("name")
+                mapping[v] = _expand(env, name) if name else v
+            else:
+                name = decl.get("name")
+                mapping[v] = _expand(env, name) if name else f"{stack_name}_{v}"
+        else:
+            mapping[v] = f"{stack_name}_{v}"
+            
+    return mapping
+
+
 def _local_volume_mounts(doc: dict) -> t.Dict[str, str]:
     """Return {host_path: container_path} for bind-mounts that map a local path."""
     mounts: t.Dict[str, str] = {}
@@ -284,11 +304,29 @@ def _local_volume_mounts(doc: dict) -> t.Dict[str, str]:
 
 
 def volume_sync_down(cfg: Config, remote: str, vol: str, dst: Path, run: Runner) -> int:
+    tmp_dir = f"{cfg.remote_dir}/.stackctl_dump_{vol}"
+    
+    # 1. Copie du contenu du volume vers un répertoire temporaire sur le VPS
     shell = (
-        f"docker run --rm --volume {vol}:/src --volume '{dst}':/dst "
-        f"{cfg.rsync_image} rsync --archive --delete /src/ /dst >/dev/null"
+        f"rm -rf '{tmp_dir}' && mkdir -p '{tmp_dir}' && "
+        f"docker run --rm --volume {vol}:/src --volume '{tmp_dir}':/dst "
+        f"{cfg.rsync_image} rsync --archive /src/ /dst/"
     )
     rc, _ = run.remote(remote, shell, check=False)
+    if rc != 0:
+        return rc
+        
+    # 2. Rapatriement du contenu en local via rsync
+    cmd = [
+        "rsync", "--archive", "--compress",
+        f"{remote}:{tmp_dir}/",
+        f"{dst}/",
+    ]
+    rc, _ = run.local(cmd, check=False)
+    
+    # 3. Nettoyage du répertoire temporaire
+    run.remote(remote, f"rm -rf '{tmp_dir}'", check=False)
+    
     return rc
 
 
@@ -460,14 +498,16 @@ def cmd_download(cfg: Config, args):
     # 4) named volumes bound to a file-system path are already covered by rsync;
     #    independent/named volumes are copied down
     local_mounts = _local_volume_mounts(doc)
+    vol_names = volume_docker_names(doc, cfg.stack_name, cfg.env)
     for vol in vols:
         if vol in local_mounts:
             info(f"  volume {vol}: bound to {local_mounts[vol] or 'container'} (covered by rsync)", log)
             continue
         vdir = snap / "volumes" / _ex_safe(vol)
         vdir.mkdir(parents=True, exist_ok=True)
-        rc = volume_sync_down(cfg, remote, vol, vdir, run)
-        info(f"  volume {vol}: sync rc={rc}", log)
+        real_vol = vol_names.get(vol, f"{cfg.stack_name}_{vol}")
+        rc = volume_sync_down(cfg, remote, real_vol, vdir, run)
+        info(f"  volume {vol} (real: {real_vol}): sync rc={rc}", log)
 
     _write_rebuild(snap, cfg, remote, vols, confs)
     log.close()
